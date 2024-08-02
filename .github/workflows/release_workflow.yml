@@ -18,10 +18,7 @@ jobs:
       DB_DATABASE_UNIT: unit_db
       DB_USER: test
       DB_PASSWORD: test
-      # TAG: ${{ github.ref_name }}
-       # Remove the 'v' prefix from the tag name
       TAG: ${{ github.ref_name }}
-      TAG_REGEX: ${TAG:1}
 
 
     steps:
@@ -87,17 +84,18 @@ jobs:
           # Remove the 'v' prefix from the tag
           export TAG=$(sed -e 's/^v//' <<< $TAG)
           ./make_release.sh -y ../ $TAG
+          mv /tmp/itsm-ng-${TAG}.tgz /tmp/itsm-ng-v${TAG}.tgz
 
       - name: Upload release
         uses: actions/upload-artifact@v4
         with:
           name: itsm-ng-${{ github.ref_name }}.tgz
-          path: /tmp/itsm-ng-${{ TAG_REGEX }}.tgz
+          path: /tmp/itsm-ng-${{ github.ref_name }}.tgz
 
       - name: Create release
         uses: softprops/action-gh-release@v2
         with:
-          files: /tmp/itsm-ng-${{ TAG_REGEX }}.tgz
+          files: /tmp/itsm-ng-${TAG}.tgz
           body: "New release is available"
           name: ITSM-NG ${{ github.ref_name }}
           draft: true
