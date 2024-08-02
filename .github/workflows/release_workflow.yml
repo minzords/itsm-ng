@@ -81,7 +81,7 @@ jobs:
           sudo apt install gettext -y
           cd tools/
           # Remove the 'v' prefix from the tag
-          export TAG $(sed -e 's/^v//' <<< $TAG)
+          export TAG=$(sed -e 's/^v//' <<< $TAG)
           ./make_release.sh -y ../ $TAG
 
       - name: Upload release
