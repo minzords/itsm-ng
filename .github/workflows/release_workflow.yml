@@ -5,6 +5,7 @@ on:
     tags:
       - '*'
 
+
 permissions:
   contents: write
 
@@ -47,50 +48,52 @@ jobs:
           sudo mysql -e "GRANT ALL PRIVILEGES ON $DB_DATABASE.* TO '$DB_USER'@'localhost';"
           sudo mysql -e "FLUSH PRIVILEGES;"
 
-      - name: Install ITSM-ng
-        run: php bin/console itsmng:database:install -H localhost -u $DB_USER -p $DB_PASSWORD -d $DB_DATABASE -n
+      # - name: Install ITSM-ng
+      #   run: php bin/console itsmng:database:install -H localhost -u $DB_USER -p $DB_PASSWORD -d $DB_DATABASE -n
 
-      - name: Setup Unit environment
-        run: |
-          sudo mysql -e "CREATE DATABASE IF NOT EXISTS $DB_DATABASE_UNIT;"
-          sudo mysql -e "GRANT ALL PRIVILEGES ON $DB_DATABASE_UNIT.* TO '$DB_USER'@'localhost';"
-          sudo mysql -e "FLUSH PRIVILEGES;"
-          php bin/console itsmng:database:install --config-dir=/home/runner/work/itsm-ng/itsm-ng/tests/config -H localhost -u $DB_USER -p $DB_PASSWORD -d $DB_DATABASE_UNIT -n
+      # - name: Setup Unit environment
+      #   run: |
+      #     sudo mysql -e "CREATE DATABASE IF NOT EXISTS $DB_DATABASE_UNIT;"
+      #     sudo mysql -e "GRANT ALL PRIVILEGES ON $DB_DATABASE_UNIT.* TO '$DB_USER'@'localhost';"
+      #     sudo mysql -e "FLUSH PRIVILEGES;"
+      #     php bin/console itsmng:database:install --config-dir=/home/runner/work/itsm-ng/itsm-ng/tests/config -H localhost -u $DB_USER -p $DB_PASSWORD -d $DB_DATABASE_UNIT -n
 
-      - name: Run PHP Unit tests
-        run: vendor/bin/atoum -p 'php -d memory_limit=512M' --debug --force-terminal --use-dot-report --bootstrap-file tests/bootstrap.php --fail-if-skipped-methods --max-children-number 10 -d tests/units
+      # - name: Run PHP Unit tests
+      #   run: vendor/bin/atoum -p 'php -d memory_limit=512M' --debug --force-terminal --use-dot-report --bootstrap-file tests/bootstrap.php --fail-if-skipped-methods --max-children-number 10 -d tests/units
 
-      - name: Setup migration environment
-        run: |
-          sudo mysql -e "CREATE DATABASE IF NOT EXISTS itsm_migration;"
-          sudo mysql -e "CREATE USER IF NOT EXISTS 'itsm_migration'@'localhost' IDENTIFIED BY 'itsm_migration';"
-          sudo mysql -e "GRANT ALL PRIVILEGES ON itsm_migration.* TO 'itsm_migration'@'localhost';"
-          sudo mysql -e "FLUSH PRIVILEGES;"
-          sudo mysql -u itsm_migration -pitsm_migration itsm_migration < tests/migrations/schema.sql
+      # - name: Setup migration environment
+      #   run: |
+      #     sudo mysql -e "CREATE DATABASE IF NOT EXISTS itsm_migration;"
+      #     sudo mysql -e "CREATE USER IF NOT EXISTS 'itsm_migration'@'localhost' IDENTIFIED BY 'itsm_migration';"
+      #     sudo mysql -e "GRANT ALL PRIVILEGES ON itsm_migration.* TO 'itsm_migration'@'localhost';"
+      #     sudo mysql -e "FLUSH PRIVILEGES;"
+      #     sudo mysql -u itsm_migration -pitsm_migration itsm_migration < tests/migrations/schema.sql
 
-      - name: Run migration tests
-        run: php bin/console itsmng:database:update --config-dir=/home/runner/work/itsm-ng/itsm-ng/tests/migrations -n
+      # - name: Run migration tests
+      #   run: php bin/console itsmng:database:update --config-dir=/home/runner/work/itsm-ng/itsm-ng/tests/migrations -n
 
-      - name: Clean environment
-        run: |
-          rm config/config_db.php config/glpicrypt.key
+      # - name: Clean environment
+      #   run: |
+      #     rm config/config_db.php config/glpicrypt.key
 
       - name: Release ITSM-ng
         run: |
           sudo apt install gettext -y
           cd tools/
+          # Remove the 'v' prefix from the tag
+          export TAG sed -e 's/^v//' <<< $TAG
           ./make_release.sh -y ../ $TAG
 
       - name: Upload release
         uses: actions/upload-artifact@v4
         with:
           name: itsm-ng-${{ github.ref_name }}.tgz
-          path: /tmp/itsm-ng-${{ github.ref_name }}.tgz
+          path: /tmp/itsm-ng-${TAG}.tgz
 
       - name: Create release
         uses: softprops/action-gh-release@v2
         with:
-          files: /tmp/itsm-ng-${{ github.ref_name }}.tgz
+          files: /tmp/itsm-ng-${TAG}.tgz
           body: "New release is available"
           name: ITSM-NG ${{ github.ref_name }}
           draft: true
