@@ -14,16 +14,16 @@ jobs:
       TAG: ${{ github.ref_name }}
 
   services:
-      mariadb:
-        image: mariadb:latest
-        ports:
-          - 3306
-        env:
-          MYSQL_USER: ${{env.DB_USER}}
-          MYSQL_PASSWORD: ${{env.DB_PASSWORD}}
-          MYSQL_DATABASE: ${{env.DB_DATABASE}}
-          MYSQL_ROOT_PASSWORD: ${{env.DB_PASSWORD}}
-        options: --health-cmd="mysqladmin ping" --health-interval=5s --health-timeout=2s --health-retries=3
+    mariadb:
+      image: mariadb:latest
+      ports:
+        - 3306
+      env:
+        MYSQL_USER: ${{env.DB_USER}}
+        MYSQL_PASSWORD: ${{env.DB_PASSWORD}}
+        MYSQL_DATABASE: ${{env.DB_DATABASE}}
+        MYSQL_ROOT_PASSWORD: ${{env.DB_PASSWORD}}
+      options: --health-cmd="mysqladmin ping" --health-interval=5s --health-timeout=2s --health-retries=3
 
     steps:
       - uses: actions/checkout@v4
