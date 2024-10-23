@@ -13,6 +13,18 @@ jobs:
       DB_PASSWORD: test
       TAG: ${{ github.ref_name }}
 
+  services:
+      mariadb:
+        image: mariadb:latest
+        ports:
+          - 3306
+        env:
+          MYSQL_USER: ${{env.DB_USER}}
+          MYSQL_PASSWORD: ${{env.DB_PASSWORD}}
+          MYSQL_DATABASE: ${{env.DB_DATABASE}}
+          MYSQL_ROOT_PASSWORD: ${{env.DB_PASSWORD}}
+        options: --health-cmd="mysqladmin ping" --health-interval=5s --health-timeout=2s --health-retries=3
+
     steps:
       - uses: actions/checkout@v4
 
@@ -31,15 +43,8 @@ jobs:
       - name: Run composer install
         run: export NODE_OPTIONS=--openssl-legacy-provider && php bin/console dependencies install
 
-      - uses: YakkaDev/mariadb-actions@v1.1.0
-        with:
-          database: ${{env.DB_DATABASE}}
-          root pass: ${{env.DB_PASSWORD}}
-          user: ${{env.DB_USER}}
-          password: ${{env.DB_PASSWORD}}
-
       - name: Install ITSM-ng
-        run: php bin/console itsmng:database:install -H 0.0.0.0 -u $DB_USER -p $DB_PASSWORD -d $DB_DATABASE -n
+        run: php bin/console itsmng:database:install -H 127.0.0.1 -u $DB_USER -p $DB_PASSWORD -d $DB_DATABASE -n
 
       - name: Setup Unit environment
         run: |
@@ -61,32 +66,4 @@ jobs:
 
       - name: Run migration tests
         run: php bin/console itsmng:database:update --config-dir=/home/runner/work/itsm-ng/itsm-ng/tests/migrations -n
-
-      - name: Clean environment
-        run: |
-          rm -f config/config_db.php config/glpicrypt.key files/_log/*.log
-
-      - name: Release ITSM-ng
-        run: |
-          sudo apt install gettext -y
-          cd tools/
-          # Remove the 'v' prefix from the tag
-          export TAG=$(sed -e 's/^v//' <<< $TAG)
-          ./make_release.sh -y ../ $TAG
-          mv /tmp/itsm-ng-${TAG}.tgz /tmp/itsm-ng-v${TAG}.tgz
-
-      - name: Upload release
-        uses: actions/upload-artifact@v4
-        with:
-          name: itsm-ng-${{ github.ref_name }}.tgz
-          path: /tmp/itsm-ng-${{ github.ref_name }}.tgz
-
-      - name: Create release
-        uses: softprops/action-gh-release@v2
-        with:
-          files: /tmp/itsm-ng-${{ github.ref_name }}.tgz
-          body: "New release is available"
-          name: ITSM-NG ${{ github.ref_name }}
-          draft: true
-          generate_release_notes: true
 
