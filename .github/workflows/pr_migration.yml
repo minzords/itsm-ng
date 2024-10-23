@@ -1,4 +1,4 @@
-name: Test Install
+name: Test Migration
 
 on: [push,pull_request]
 
@@ -38,10 +38,10 @@ jobs:
           node-version: '20'
 
       - name: Run composer install
-        run: export NODE_OPTIONS=--openssl-legacy-provider && php bin/console dependencies install
+        run: composer install
 
       - name: Install ITSM-ng
-        run: sudo mysql -u $DB_USER -p$DB_PASSWORD $DB_DATABASE < tests/migrations/schema.sql
+        run: sudo mysql -H 127.0.0.1 -u $DB_USER -p$DB_PASSWORD $DB_DATABASE < tests/migrations/schema.sql
 
       - name: Run migration tests
         run: php bin/console itsmng:database:update --config-dir=/home/runner/work/itsm-ng/itsm-ng/tests/migrations -n
