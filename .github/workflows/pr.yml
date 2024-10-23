@@ -27,10 +27,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Test MySQL connection
-        run: |
-          mysqladmin ping -h 127.0.0.1 -u $DB_USER -p$DB_PASSWORD
-
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
@@ -51,9 +47,9 @@ jobs:
 
       - name: Setup Unit environment
         run: |
-          sudo mysql -e "CREATE DATABASE IF NOT EXISTS $DB_DATABASE_UNIT;"
-          sudo mysql -e "GRANT ALL PRIVILEGES ON $DB_DATABASE_UNIT.* TO '$DB_USER'@'localhost';"
-          sudo mysql -e "FLUSH PRIVILEGES;"
+          sudo mysql -p$DB_PASSWORD_UNIT -e "CREATE DATABASE IF NOT EXISTS $DB_DATABASE_UNIT;"
+          sudo mysql -p$DB_PASSWORD_UNIT -e "GRANT ALL PRIVILEGES ON $DB_DATABASE_UNIT.* TO '$DB_USER'@'localhost';"
+          sudo mysql -p$DB_PASSWORD_UNIT -e "FLUSH PRIVILEGES;"
           php bin/console itsmng:database:install --config-dir=/home/runner/work/itsm-ng/itsm-ng/tests/config -H localhost -u $DB_USER -p $DB_PASSWORD -d $DB_DATABASE_UNIT -n
 
       - name: Run PHP Unit tests
@@ -61,10 +57,10 @@ jobs:
 
       - name: Setup migration environment
         run: |
-          sudo mysql -e "CREATE DATABASE IF NOT EXISTS itsm_migration;"
-          sudo mysql -e "CREATE USER IF NOT EXISTS 'itsm_migration'@'localhost' IDENTIFIED BY 'itsm_migration';"
-          sudo mysql -e "GRANT ALL PRIVILEGES ON itsm_migration.* TO 'itsm_migration'@'localhost';"
-          sudo mysql -e "FLUSH PRIVILEGES;"
+          sudo mysql -p$DB_PASSWORD_UNIT -e "CREATE DATABASE IF NOT EXISTS itsm_migration;"
+          sudo mysql -p$DB_PASSWORD_UNIT -e "CREATE USER IF NOT EXISTS 'itsm_migration'@'localhost' IDENTIFIED BY 'itsm_migration';"
+          sudo mysql -p$DB_PASSWORD_UNIT -e "GRANT ALL PRIVILEGES ON itsm_migration.* TO 'itsm_migration'@'localhost';"
+          sudo mysql -p$DB_PASSWORD_UNIT -e "FLUSH PRIVILEGES;"
           sudo mysql -u itsm_migration -pitsm_migration itsm_migration < tests/migrations/schema.sql
 
       - name: Run migration tests
