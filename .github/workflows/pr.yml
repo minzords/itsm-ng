@@ -39,7 +39,7 @@ jobs:
           password: ${{env.DB_PASSWORD}}
 
       - name: Install ITSM-ng
-        run: php bin/console itsmng:database:install -H localhost -u $DB_USER -p $DB_PASSWORD -d $DB_DATABASE -n
+        run: php bin/console itsmng:database:install -H 0.0.0.0 -u $DB_USER -p $DB_PASSWORD -d $DB_DATABASE -n
 
       - name: Setup Unit environment
         run: |
