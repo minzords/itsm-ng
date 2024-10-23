@@ -37,8 +37,8 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Run composer install
-        run: composer install
+      - name: Run composer / npm install
+        run: export NODE_OPTIONS=--openssl-legacy-provider && php bin/console dependencies install
 
       - name: Install ITSM-ng
         run: sudo mysql -h 127.0.0.1 -u $DB_USER -p$DB_PASSWORD $DB_DATABASE < tests/migrations/schema.sql
